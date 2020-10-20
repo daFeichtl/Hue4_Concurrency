@@ -5,10 +5,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 public class FileDivider{
     List<Integer> nums = new ArrayList<>();
+    ThreadPoolExecutor threadPoolExecutor;
     private int teiler;
     private int chunk;
 
@@ -35,17 +38,21 @@ public class FileDivider{
 
     public void calc(){
         int anzThreads = ((int) nums.size()/chunk)+1;
-
+        threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(anzThreads);
+        for (int i = 0; i < anzThreads; i++) {
+            threadPoolExecutor.execute(new Divider(i*chunk,(i+1)*chunk-1));
+        }
+    }
+    public void stop(){
+        threadPoolExecutor.shutdown();
     }
     class Divider implements Runnable{
         private int startIndex;
         private int endIndex;
-        private int result;
 
-        public Divider(int startIndex, int endIndex, int result) {
+        public Divider(int startIndex, int endIndex) {
             this.startIndex = startIndex;
             this.endIndex = endIndex;
-            this.result = result;
         }
 
         @Override
